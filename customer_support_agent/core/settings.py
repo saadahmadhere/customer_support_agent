@@ -17,7 +17,8 @@ class Settings(BaseSettings):
     app_name: str = "AI Copilot for Support Agents"
 
     groq_api_key: str = ""
-    groq_model: str = "llama-3.1-8b-instant"
+    # groq_model: str = "llama-3.1-8b-instant"
+    groq_model: str = "llama-3.3-70b-versatile"
     llm_temperature: float = 0.2
 
 
