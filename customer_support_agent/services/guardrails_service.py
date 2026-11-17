@@ -4,8 +4,10 @@ import re
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
+from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import HumanMessage, SystemMessage
-from langchain_groq import ChatGroq
+
+from customer_support_agent.core.llm import build_chat_model
 
 
 try:
@@ -284,7 +286,7 @@ class GuardrailsService:
         self._settings = settings
         self._enabled = settings.guardrails_enabled
         self._tracer = tracer or NoOpTracer()
-        self._classifier_llm: ChatGroq | None = None
+        self._classifier_llm: BaseChatModel | None = None
 
         self._pii_validators: list[Validator] = []
         self._toxicity_validator: Validator | None = None
@@ -499,7 +501,7 @@ class GuardrailsService:
             except Exception:
                 pass
 
-        if not self._settings.groq_api_key:
+        if not self._settings.openai_api_key:
             return "uncertain"
 
         classifier = self._get_classifier_llm()
@@ -541,16 +543,12 @@ class GuardrailsService:
 
 
 
-    def _get_classifier_llm(self) -> ChatGroq | None:
+    def _get_classifier_llm(self) -> BaseChatModel | None:
         if self._classifier_llm is not None:
             return self._classifier_llm
 
         try:
-            self._classifier_llm = ChatGroq(
-                model=self._settings.groq_model,
-                groq_api_key=self._settings.groq_api_key,
-                temperature=0.0,
-            )
+            self._classifier_llm = build_chat_model(self._settings, temperature=0.0)
         except Exception:
             self._classifier_llm = None
         return self._classifier_llm

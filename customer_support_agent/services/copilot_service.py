@@ -6,9 +6,9 @@ from typing import Any
 
 from langchain.agents import create_agent
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage, ToolMessage
-from langchain_groq import ChatGroq
 from langgraph.checkpoint.memory import InMemorySaver
 
+from customer_support_agent.core.llm import build_chat_model
 from customer_support_agent.core.settings import Settings
 from customer_support_agent.integrations.memory.mem0_store import (
     CustomerMemoryStore,
@@ -22,18 +22,10 @@ from customer_support_agent.services.guardrails_service import GuardrailsService
 
 class SupportCopilot:
     def __init__(self, settings: Settings, guardrails: GuardrailsService | None = None,tracer: Tracer | NoOpTracer | None = None):
-        if not settings.groq_api_key:
-            raise RuntimeError(
-                "GROQ_API_KEY is missing. Add it in .env before generating drafts."
-            )
         self._settings = settings
         self._guardrails = guardrails or GuardrailsService(settings=settings)
         self._tracer = tracer or NoOpTracer()
-        self._llm = ChatGroq(
-            model=settings.groq_model,
-            groq_api_key=settings.groq_api_key,
-            temperature=settings.llm_temperature,
-        )
+        self._llm = build_chat_model(settings)  # raises if OPENAI_API_KEY is missing
         self._tools = get_support_tools()
         self._agent = create_agent(
             model=self._llm,

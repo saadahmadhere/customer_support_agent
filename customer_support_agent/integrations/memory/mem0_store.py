@@ -18,10 +18,10 @@ class CustomerMemoryStore:
 
         config: dict[str, Any] = {
             "llm": {
-                "provider": "groq",
+                "provider": "openai",
                 "config": {
-                    "model": settings.groq_model,
-                    "api_key": settings.groq_api_key,
+                    "model": settings.openai_model,
+                    "api_key": settings.openai_api_key,
                     "temperature": settings.llm_temperature,
                 },
             },
@@ -33,7 +33,17 @@ class CustomerMemoryStore:
             },
         }
 
-        if settings.google_api_key:
+        # An explicit ENABLE_LOCAL_EMBEDDINGS=true wins, so adding an API key
+        # doesn't silently change the embedder (and the vector size) of stored memories.
+        if settings.enable_local_embeddings:
+            config["embedder"] = {
+                "provider": "huggingface",
+                "config": {
+                    "model": "all-MiniLM-L6-v2",
+                },
+            }
+
+        elif settings.google_api_key:
             config["embedder"] = {
                 "provider": "gemini",
                 "config": {
@@ -50,14 +60,6 @@ class CustomerMemoryStore:
                 },
             }
 
-        elif settings.enable_local_embeddings:
-            config["embedder"] = {
-                "provider": "huggingface",
-                "config": {
-                    "model": "all-MiniLM-L6-v2",
-                },
-            }
-
         else:
             raise RuntimeError(
                 "No embedding provider configured for Mem0. Set GOOGLE_API_KEY (recommended) "
@@ -67,16 +69,13 @@ class CustomerMemoryStore:
         self._memory = Memory.from_config(config)
 
     def search(self, query: str, user_id: str, limit: int = 5) -> list[dict[str, Any]]:
-        try:
-            raw = self._memory.search(query, user_id=user_id, limit=limit)
-        except TypeError:
-            raw = self._memory.search(query, user_id=user_id)
+        # mem0 2.x: entity ids go in `filters`, and `limit` is now `top_k`.
+        raw = self._memory.search(query, filters={"user_id": user_id}, top_k=limit)
         return self._normalize_results(raw, limit)
 
     def list_memories(self, user_id: str, limit: int = 20) -> list[dict[str, Any]]:
-        if hasattr(self._memory, "get_all"):
-            raw = self._memory.get_all(user_id=user_id)
-            return self._normalize_results(raw, limit)
+        raw = self._memory.get_all(filters={"user_id": user_id}, top_k=limit)
+        return self._normalize_results(raw, limit)
 
     def add_interaction(
         self,
