@@ -1,0 +1,16 @@
+# Never bake secrets, local envs or runtime data into the image
+.env
+.env.*
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.git/
+.vscode/
+.idea/
+data/
+notebooks/
+docs/
+tests/
+*.db
+*.sqlite3
