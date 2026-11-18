@@ -33,17 +33,7 @@ class CustomerMemoryStore:
             },
         }
 
-        # An explicit ENABLE_LOCAL_EMBEDDINGS=true wins, so adding an API key
-        # doesn't silently change the embedder (and the vector size) of stored memories.
-        if settings.enable_local_embeddings:
-            config["embedder"] = {
-                "provider": "huggingface",
-                "config": {
-                    "model": "all-MiniLM-L6-v2",
-                },
-            }
-
-        elif settings.google_api_key:
+        if settings.google_api_key:
             config["embedder"] = {
                 "provider": "gemini",
                 "config": {
@@ -63,7 +53,7 @@ class CustomerMemoryStore:
         else:
             raise RuntimeError(
                 "No embedding provider configured for Mem0. Set GOOGLE_API_KEY (recommended) "
-                "or OPENAI_API_KEY. Set ENABLE_LOCAL_EMBEDDINGS=true to use local HuggingFace embeddings."
+                "or OPENAI_API_KEY."
             )
 
         self._memory = Memory.from_config(config)

@@ -28,7 +28,6 @@ class Settings(BaseSettings):
 
     google_api_key: str = ""
     google_embedding_model: str = "gemini-embedding-001"
-    enable_local_embeddings: bool = False
 
     workspace_dir: Path = Path(__file__).resolve().parents[2]
     data_dir: Path = Path("data")
