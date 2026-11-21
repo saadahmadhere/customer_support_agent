@@ -9,6 +9,7 @@ dependencies = [
     "dataclasses>=0.8",
     "fastapi>=0.162.7",
     "groq<1",
+    "guardrails-ai>=0.5",
     "ipykernel>=7.4.0",
     "langchain>=1.4.9",
     "langchain-groq>=1.1.3",
@@ -18,6 +19,7 @@ dependencies = [
     "mem0ai>=2.2.1",
     "pydantic-settings>=2.16.2",
     "pydantic[email]>=2.14.2",
+    "spacy>=3.7",
     "streamlit>=1.67.0",
     "typing>=3.10.0.0",
     "uvicorn>=0.54.0",
@@ -25,5 +27,19 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "pytest>=9.2.0",
+  "playwright>=1.58.0",
+  "pytest",
+  "ragas>=0.2",
+  "deepeval>=1.0",
+  "rapidfuzz>=3.10",
+]
+
+[tool.pytest.ini_options]
+markers = [
+  "full_eval: marks the full RAG + agent evaluation suite",
+]
+filterwarnings = [
+  "ignore:Importing NonLLMContextPrecisionWithReference from 'ragas.metrics' is deprecated:DeprecationWarning",
+  "ignore:.*LangchainEmbeddingsWrapper is deprecated.*:DeprecationWarning",
+  "ignore:.*LangchainLLMWrapper is deprecated.*:DeprecationWarning",
 ]
